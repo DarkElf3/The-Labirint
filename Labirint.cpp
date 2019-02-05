@@ -3,6 +3,7 @@
 #include <vector>
 #include <algorithm>
 #include <queue>  // используем очередь
+#include <functional> // для лямбд
 
 using namespace std;
 
@@ -12,7 +13,6 @@ using namespace std;
 **/
 static string *PArray; // Входная карта лабиринта
 static vector<int> Maze; // Карта с номерами вершин графа
-
 static int R; // number of rows.
 static int C; // number of columns.
 static int A; // number of rounds between the time the alarm countdown is activated and the time the alarm goes off.
@@ -59,64 +59,33 @@ void AddNode(int Row, int Col)
 // Добавляет вершину в граф. Связывает ребрами с соседними.
 // Если соседей нет в графе, то они добавляются рекурсивно.
 {
-	if (Row < 0 || Row > R - 1 || Col < 0 || Col > C - 1) return;
+	if (Row < 0 || Row > R - 1 || Col < 0 || Col > C - 1) return; // Проверка границ
 	int Index = Row * C + Col;
 	if (Maze[Index] != -1) return; // Вершина уже есть в графе
 	int GIndex;
 	AddGraphNode(Row, Col, Index, &GIndex);
-
-	if (Col > 0 && PArray[Row][Col - 1] == '.') { // Слева есть путь
-		int LeftGIndex = Maze[Index - 1];
-		if (LeftGIndex == -1) { // Поля слева нет в графе, добавляем
-			AddNode(Row, Col - 1);
-			LeftGIndex = Maze[Index - 1];
+	// Моя первая лямбда), делает ребра
+	function<void(int, int, int)> MakeWay = [GIndex](int LIndex, int LRow, int LCol) {
+		int LocalIndex = Maze[LIndex];
+		if (LocalIndex == -1) { // Соседнего поля нет в графе, добавляем
+			AddNode(LRow, LCol);
+			LocalIndex = Maze[LIndex];
 		}
-		if (std::find(Graph[GIndex].begin(), Graph[GIndex].end(), LeftGIndex)
+		if (std::find(Graph[GIndex].begin(), Graph[GIndex].end(), LocalIndex)
 			== Graph[GIndex].end()) { // Если ребра еще нет
-			Graph[GIndex].push_back(LeftGIndex); // Делаем ребро 
-			Graph[LeftGIndex].push_back(GIndex);
+			Graph[GIndex].push_back(LocalIndex);   // Делаем ребро 
+			Graph[LocalIndex].push_back(GIndex);
 		}
-	}
+	};
 
-	if (Col < (C - 1) && PArray[Row][Col + 1] == '.') { // Справа есть путь
-		int RightGIndex = Maze[Index + 1];
-		if (RightGIndex == -1) { // Поля справа нет в графе, добавляем
-			AddNode(Row, Col + 1);
-			RightGIndex = Maze[Index + 1];
-		}
-		if (std::find(Graph[GIndex].begin(), Graph[GIndex].end(), RightGIndex)
-			== Graph[GIndex].end()) { // Если ребра еще нет
-			Graph[GIndex].push_back(RightGIndex); // Делаем ребро 
-			Graph[RightGIndex].push_back(GIndex);
-		}
-	}
-
-	if (Row > 0 && PArray[Row - 1][Col] == '.') { // Сверху есть путь
-		int UpGIndex = Maze[Index - C];
-		if (UpGIndex == -1) { // Поля сверху нет в графе, добавляем
-			AddNode(Row - 1, Col);
-			UpGIndex = Maze[Index - C];
-		}
-		if (std::find(Graph[GIndex].begin(), Graph[GIndex].end(), UpGIndex)
-			== Graph[GIndex].end()) { // Если ребра еще нет
-			Graph[GIndex].push_back(UpGIndex); // Делаем ребро 
-			Graph[UpGIndex].push_back(GIndex);
-		}
-	}
-
-	if (Row < (R - 1) && PArray[Row + 1][Col] == '.') { // Снизу есть путь
-		int DownGIndex = Maze[Index + C];
-		if (DownGIndex == -1) { // Поля снизу нет в графе, добавляем
-			AddNode(Row + 1, Col);
-			DownGIndex = Maze[Index + C];		
-		}
-		if (std::find(Graph[GIndex].begin(), Graph[GIndex].end(), DownGIndex)
-			== Graph[GIndex].end()) { // Если ребра еще нет
-			Graph[GIndex].push_back(DownGIndex); // Делаем ребро 
-			Graph[DownGIndex].push_back(GIndex);
-		}
-	}
-
+	if (Col > 0 && PArray[Row][Col - 1] == '.') // Слева есть путь
+		MakeWay(Index - 1, Row, Col - 1);
+	if (Col < (C - 1) && PArray[Row][Col + 1] == '.') // Справа есть путь
+		MakeWay(Index + 1, Row, Col + 1);
+	if (Row > 0 && PArray[Row - 1][Col] == '.') // Сверху есть путь
+		MakeWay(Index - C, Row - 1, Col);
+	if (Row < (R - 1) && PArray[Row + 1][Col] == '.') // Снизу есть путь
+		MakeWay(Index + C, Row + 1, Col);
 }
 
 static char *Command; // Команда на движение. Вынесена на случай,
@@ -163,35 +132,34 @@ void GoBack()
 // Делает путь возврата к последнему перекрестку(от тупика,
 // исследованного перекрестка, комнаты управления) поиском в ширину по графу
 {
-	int n = Graph.size(); // число вершин
-	queue<int> q;
-	q.push(GPos);
-	vector<bool> used(n);
-	vector<int> d(n), p(n);
-	used[GPos] = true;
-	p[GPos] = -1;
-	while (!q.empty()) {
-		int v = q.front();
-		q.pop();
-		for (size_t i = 0; i<Graph[v].size(); ++i) {
-			int to = Graph[v][i];
-			if (!used[to]) {
-				used[to] = true;
-				q.push(to);
-				d[to] = d[v] + 1;
-				p[to] = v;
+	int n = Graph.size();   // число вершин в графе
+	queue<int> Queue;       // очередь вершин
+	vector<bool> Visited(n);// обработанные вершины
+							//    vector<int> Dist(n);  // Длина пути до вершины (не нужна пока)
+	vector<int> Prev(n);    // откуда пришли
+	Queue.push(GPos);      // Начинаем с текущей позиции
+	Visited[GPos] = true;
+	Prev[GPos] = -1;
+	while (!Queue.empty()) {    // Берем из очереди вершину и добавляем туда
+		int Pos = Queue.front();// непосещенных соседей
+		Queue.pop();
+		for (int i = 0; i < Graph[Pos].size(); i++) {
+			int Neighbour = Graph[Pos][i];
+			if (!Visited[Neighbour]) {
+				Visited[Neighbour] = true;
+				Queue.push(Neighbour);
+				//			    Dist[Neighbour] = Dist[Pos] + 1;
+				Prev[Neighbour] = Pos;
 			}
 		}
 	}
-
-	int to = CrossRoads[CrossRoads.size() - 1];
-	if (!used[to])
+	// Можно завернуть в лямбду и прерваться на точке назначения
+	int Dest = CrossRoads[CrossRoads.size() - 1];
+	if (!Visited[Dest])     // 
 		cerr << "No path!";
 	else {
-
-		for (int v = to; v != -1; v = p[v])
-			PathBack.push_back(v);
-		PathBack.pop_back(); 
+		for (int Pos = Dest; Prev[Pos] != -1; Pos = Prev[Pos])
+			PathBack.push_back(Pos);// Путь к вершине назначения Dest
 	}
 }
 
@@ -217,10 +185,10 @@ int SelectDestination()	// Выбирает вершину для следующ
 	return -1; // Исследовать нечего, сигнал к возврату
 }
 
-void GetData()
+void GetData()// Считываем  входные данные нового хода
 {
-	cin >> KR >> KC; cin.ignore();
-	for (int i = 0; i < R; i++) {
+	cin >> KR >> KC; cin.ignore();  // Позиция Кирка
+	for (int i = 0; i < R; i++) {   // Символьная  карта
 		cin >> PArray[i]; cin.ignore();
 	}
 }
@@ -230,13 +198,7 @@ int main()
 	string Array[R];    // Символьная карта
 	PArray = Array;     // и глобальный указатель на нее
 	Maze.resize(R * C, -1); // Карта соответствия вершинам в  графе
-
-	cin >> KR >> KC; cin.ignore();
-	for (int i = 0; i < R; i++) {
-		//            string ROW; // C of the characters in '#.TC?' (i.e. one line of the ASCII maze).
-		cin >> PArray[i]; cin.ignore(); // В массив
-	}
-
+	GetData();          // Считываем  входные данные нового хода
 	AddNode(KR, KC);    // Начальную позицию в граф, она посещена и перекресток
 	GraphInfo[0].visited = true;
 	CrossRoads.push_back(0);
@@ -251,30 +213,22 @@ int main()
 			Dest = SelectDestination();
 		}
 		DoStep(Dest);               // Делаем шаг
-
 		GetData();                  // Читаем входные данные
+		if (Escaping) continue;  // Нашли комнату управления, бежим назад кратчайшим путем
 		if (!GraphInfo[GPos].visited) {
 			ScanAll();              // Осматриваемся // Можно оптимизировать
 			GraphInfo[GPos].visited = true; // Помечаем, что были здесь
 		}
-		if (Escaping) continue;  // Нашли комнату управления, бежим назад кратчайшим путем 
-		if (KC > 0 && PArray[KR][KC - 1] == 'C') {
-			cout << "LEFT" << endl;
+		// Лямбда для входа в комнату управления сверху, снизу, слева, справа
+		function <void(string)> EnterControlRoom = [&Escaping](string S) {
+			cout << S << endl;
 			Escaping = true;
-		}
-		if (KC < C - 1 && PArray[KR][KC + 1] == 'C') {
-			cout << "RIGHT" << endl;
-			Escaping = true;
-		}
-		if (KR > 0 && PArray[KR - 1][KC] == 'C') {
-			cout << "UP" << endl;
-			Escaping = true;
-		}
-		if (KR < R - 1 && PArray[KR + 1][KC] == 'C') {
-			cout << "DOWN" << endl;
-			Escaping = true;
-		}
-		if (Escaping) {
+		};
+		if (KC > 0 && PArray[KR][KC - 1] == 'C') EnterControlRoom("LEFT");
+		if (KC < C - 1 && PArray[KR][KC + 1] == 'C') EnterControlRoom("RIGHT");
+		if (KR > 0 && PArray[KR - 1][KC] == 'C') EnterControlRoom("UP");
+		if (KR < R - 1 && PArray[KR + 1][KC] == 'C') EnterControlRoom("DOWN");
+		if (Escaping) {	// Вошли в комнату управления, убегаем 
 			GetData();	// Считывем данные и  добавляем позицию в граф
 			AddNode(KR, KC);
 			GPos = Maze[KR * C + KC];
