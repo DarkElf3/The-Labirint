@@ -16,6 +16,9 @@ static int R; // number of rows.
 static int C; // number of columns.
 static int A; // number of rounds between the time the alarm countdown is activated and the time the alarm goes off.
 
+static int KR; // row where Kirk is located.
+static int KC; // column where Kirk is located.
+
 struct TNodeInfo { // Тип информации о вершинах графа
 	bool visited;
 	int Row, Col;
@@ -25,6 +28,18 @@ static vector< vector<int> > Graph; // Граф лабиринта
 static vector<TNodeInfo> GraphInfo; // Информация о вершинах графа
 static int GPos = 0;                // Текущая позиция в графе
 
+/*
+void ShowScan()  // Отладочная функция. Выводит видимую область (5х5 вокруг Кирка)
+{
+	for (int i = (KR < 2 ? 2 : KR) - 2; i < (KR + 3 > R ? R : KR + 3); i++) {
+		for (int j = (KC < 2 ? 2 : KC) - 2; j <(KC + 3 > C ? C : KC + 3); j++) {
+			cerr << Maze[i * C + j] << ' ';
+		}
+		cerr << endl;
+	}
+
+}
+*/
 void AddGraphNode(int Row, int Col, int Index, int *GIndex)
 // Добавляет вершину с информацией в граф
 // Отмечает номер вершины на карте
@@ -87,11 +102,13 @@ void AddNode(int Row, int Col)
 
 }
 
+static char *Command; // Команда на движение. Вынесена на случай,
+					  // если нужно будет знать последний ход
+
 void DoStep(int Pos)
 // Делает ход от текущей вершины графа к заданной
 {
 	TNodeInfo CurPosInfo = GraphInfo[GPos], ToPosInfo = GraphInfo[Pos];
-	char *Command;
 	int Horizontal = ToPosInfo.Col - CurPosInfo.Col;
 	Command = "Wrong Destination";  // Неправильный ход
 	if (Horizontal != 0) {          // По горизонтали
@@ -111,6 +128,37 @@ void DoStep(int Pos)
 	GPos = Pos;                     // Текущая позиция
 }
 
+void ScanAll()
+// Сканирует видимую область (5х5 вокруг Кирка) c учетом границ лабиринта
+// Увиденные вершины добавляются в граф.
+{
+	for (int i = (KR < 2 ? 2 : KR) - 2; i < (KR + 3 > R ? R : KR + 3); i++) {
+		for (int j = (KC < 2 ? 2 : KC) - 2; j <(KC + 3 > C ? C : KC + 3); j++) {
+			if (PArray[i][j] == '.') AddNode(i, j);
+		}
+	}
+}
+
+vector <int> CrossRoads; // Список перекрестков (вершин с 3-4 соседями)
+
+void GoBack()
+{
+}
+
+int SelectDestination()	// Выбирает вершину для следующего хода
+{
+	if (Graph[GPos].size() > 2) {	// Перекресток - добавляем
+		CrossRoads.push_back(GPos);
+	}
+	for (int i = 0; i < Graph[GPos].size(); i++) // Ищем непосещенного соседа
+	{
+		int Next = Graph[GPos][i];
+		if (GraphInfo[Next].visited) continue;
+		return Next;
+	}
+	GoBack();	// Возвращаемся, если некуда идти
+}
+
 int main()
 {
 	cin >> R >> C >> A; cin.ignore(); // Размер карты и время сигнализации
@@ -118,8 +166,6 @@ int main()
 	PArray = Array;     // и глобальный указатель на нее
 	Maze.resize(R * C, -1); // Карта соответствия вершинам в  графе
 
-	int KR; // row where Kirk is located.
-	int KC; // column where Kirk is located.
 	cin >> KR >> KC; cin.ignore();
 	for (int i = 0; i < R; i++) {
 		//            string ROW; // C of the characters in '#.TC?' (i.e. one line of the ASCII maze).
@@ -127,20 +173,21 @@ int main()
 	}
 
 	AddNode(KR, KC);    // Начальную позицию в граф
-	for (int i = (KR < 2 ? 2 : KR) - 2; i < (KR + 3 > R ? R : KR + 3); i++) {
-		for (int j = (KC < 2 ? 2 : KC) - 2; j <(KC + 3 > C ? C : KC + 3); j++) {
-			if (Array[i][j] == '.') AddNode(i, j);
-		}
-	}
+	GraphInfo[0].visited = true;
+	ScanAll();
+
 	int Pos = 1;
 	// game loop
 	while (1) {
-		DoStep(Pos);               // Делаем шаг
-		Pos ^= 1;
-		
-		cin >> KR >> KC; cin.ignore(); // Читаем данные хода
+		DoStep(SelectDestination());
+
+		cin >> KR >> KC; cin.ignore();
 		for (int i = 0; i < R; i++) {
 			cin >> PArray[i]; cin.ignore();
+		}
+		if (!GraphInfo[GPos].visited) {
+			ScanAll();
+			GraphInfo[GPos].visited = true;
 		}
 	}
 }
