@@ -23,6 +23,7 @@ struct TNodeInfo { // Тип информации о вершинах графа
 
 static vector< vector<int> > Graph; // Граф лабиринта
 static vector<TNodeInfo> GraphInfo; // Информация о вершинах графа
+static int GPos = 0;                // Текущая позиция в графе
 
 void AddGraphNode(int Row, int Col, int Index, int *GIndex)
 // Добавляет вершину с информацией в граф
@@ -86,6 +87,30 @@ void AddNode(int Row, int Col)
 
 }
 
+void DoStep(int Pos)
+// Делает ход от текущей вершины графа к заданной
+{
+	TNodeInfo CurPosInfo = GraphInfo[GPos], ToPosInfo = GraphInfo[Pos];
+	char *Command;
+	int Horizontal = ToPosInfo.Col - CurPosInfo.Col;
+	Command = "Wrong Destination";  // Неправильный ход
+	if (Horizontal != 0) {          // По горизонтали
+		if (Horizontal < 0)
+			Command = "LEFT";
+		else
+			Command = "RIGHT";
+	}
+	int Vertical = ToPosInfo.Row - CurPosInfo.Row;
+	if (Vertical != 0) {            // По вертикали
+		if (Vertical < 0)
+			Command = "UP";
+		else
+			Command = "DOWN";
+	}
+	cout << Command << endl;        // Делаем ход
+	GPos = Pos;                     // Текущая позиция
+}
+
 int main()
 {
 	cin >> R >> C >> A; cin.ignore(); // Размер карты и время сигнализации
@@ -107,14 +132,12 @@ int main()
 			if (Array[i][j] == '.') AddNode(i, j);
 		}
 	}
-						// game loop
+	int Pos = 1;
+	// game loop
 	while (1) {
-
-		// Write an action using cout. DON'T FORGET THE "<< endl"
-		// To debug: cerr << "Debug messages..." << endl;
-
-		cout << "RIGHT" << endl; // Kirk's next move (UP DOWN LEFT or RIGHT).
-
+		DoStep(Pos);               // Делаем шаг
+		Pos ^= 1;
+		
 		cin >> KR >> KC; cin.ignore(); // Читаем данные хода
 		for (int i = 0; i < R; i++) {
 			cin >> PArray[i]; cin.ignore();
