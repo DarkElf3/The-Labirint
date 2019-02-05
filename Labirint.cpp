@@ -257,42 +257,29 @@ int main()
 			ScanAll();              // Осматриваемся // Можно оптимизировать
 			GraphInfo[GPos].visited = true; // Помечаем, что были здесь
 		}
-		if (Escaping) continue; // Вошли в комнату управления, убегаем 
+		if (Escaping) continue;  // Нашли комнату управления, бежим назад кратчайшим путем 
 		if (KC > 0 && PArray[KR][KC - 1] == 'C') {
 			cout << "LEFT" << endl;
-			GetData();
-			cout << "RIGHT" << endl;
-			GetData(); // Считывем данные и  добавляем позицию в граф
-			CrossRoads.push_back(0); // Точка возврата - позиция 0 в графе
-			GoBack();
 			Escaping = true;
 		}
 		if (KC < C - 1 && PArray[KR][KC + 1] == 'C') {
 			cout << "RIGHT" << endl;
-			GetData();
-			cout << "LEFT" << endl;
-			GetData();
-			CrossRoads.push_back(0);
-			GoBack();
 			Escaping = true;
 		}
 		if (KR > 0 && PArray[KR - 1][KC] == 'C') {
 			cout << "UP" << endl;
-			GetData();
-			cout << "DOWN" << endl;
-			GetData();
-			CrossRoads.push_back(0);
-			GoBack();
 			Escaping = true;
 		}
 		if (KR < R - 1 && PArray[KR + 1][KC] == 'C') {
 			cout << "DOWN" << endl;
-			GetData();
-			cout << "UP" << endl;
-			GetData();
-			CrossRoads.push_back(0);
-			GoBack();
 			Escaping = true;
 		}
-	}
-}
+		if (Escaping) {
+			GetData();	// Считывем данные и  добавляем позицию в граф
+			AddNode(KR, KC);
+			GPos = Maze[KR * C + KC];
+			CrossRoads.push_back(0); // Точка возврата - позиция 0 в графе
+			GoBack();             // Прокладываем кратчайший путь возврата
+		}// Есть возможность подойти к контрольной комнате не открыв еще
+	}     // наикратчайший путь назад. Проверка на это ухудшит читабельность
+}         // if (PathBack.size() > A) 
