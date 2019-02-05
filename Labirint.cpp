@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <queue>  // используем очередь
 
 using namespace std;
 
@@ -67,37 +68,53 @@ void AddNode(int Row, int Col)
 	if (Col > 0 && PArray[Row][Col - 1] == '.') { // Слева есть путь
 		int LeftGIndex = Maze[Index - 1];
 		if (LeftGIndex == -1) { // Поля слева нет в графе, добавляем
-			AddGraphNode(Row, Col - 1, Index - 1, &LeftGIndex);
+			AddNode(Row, Col - 1);
+			LeftGIndex = Maze[Index - 1];
 		}
-		Graph[GIndex].push_back(LeftGIndex); // Делаем ребро 
-		Graph[LeftGIndex].push_back(GIndex);
+		if (std::find(Graph[GIndex].begin(), Graph[GIndex].end(), LeftGIndex)
+			== Graph[GIndex].end()) { // Если ребра еще нет
+			Graph[GIndex].push_back(LeftGIndex); // Делаем ребро 
+			Graph[LeftGIndex].push_back(GIndex);
+		}
 	}
 
 	if (Col < (C - 1) && PArray[Row][Col + 1] == '.') { // Справа есть путь
 		int RightGIndex = Maze[Index + 1];
 		if (RightGIndex == -1) { // Поля справа нет в графе, добавляем
-			AddGraphNode(Row, Col + 1, Index + 1, &RightGIndex);
+			AddNode(Row, Col + 1);
+			RightGIndex = Maze[Index + 1];
 		}
-		Graph[GIndex].push_back(RightGIndex); // Делаем ребро 
-		Graph[RightGIndex].push_back(GIndex);
+		if (std::find(Graph[GIndex].begin(), Graph[GIndex].end(), RightGIndex)
+			== Graph[GIndex].end()) { // Если ребра еще нет
+			Graph[GIndex].push_back(RightGIndex); // Делаем ребро 
+			Graph[RightGIndex].push_back(GIndex);
+		}
 	}
 
 	if (Row > 0 && PArray[Row - 1][Col] == '.') { // Сверху есть путь
 		int UpGIndex = Maze[Index - C];
 		if (UpGIndex == -1) { // Поля сверху нет в графе, добавляем
-			AddGraphNode(Row - 1, Col, Index - C, &UpGIndex);
+			AddNode(Row - 1, Col);
+			UpGIndex = Maze[Index - C];
 		}
-		Graph[GIndex].push_back(UpGIndex); // Делаем ребро 
-		Graph[UpGIndex].push_back(GIndex);
+		if (std::find(Graph[GIndex].begin(), Graph[GIndex].end(), UpGIndex)
+			== Graph[GIndex].end()) { // Если ребра еще нет
+			Graph[GIndex].push_back(UpGIndex); // Делаем ребро 
+			Graph[UpGIndex].push_back(GIndex);
+		}
 	}
 
 	if (Row < (R - 1) && PArray[Row + 1][Col] == '.') { // Снизу есть путь
 		int DownGIndex = Maze[Index + C];
 		if (DownGIndex == -1) { // Поля снизу нет в графе, добавляем
-			AddGraphNode(Row + 1, Col, Index + C, &DownGIndex);
+			AddNode(Row + 1, Col);
+			DownGIndex = Maze[Index + C];		
 		}
-		Graph[GIndex].push_back(DownGIndex); // Делаем ребро 
-		Graph[DownGIndex].push_back(GIndex);
+		if (std::find(Graph[GIndex].begin(), Graph[GIndex].end(), DownGIndex)
+			== Graph[GIndex].end()) { // Если ребра еще нет
+			Graph[GIndex].push_back(DownGIndex); // Делаем ребро 
+			Graph[DownGIndex].push_back(GIndex);
+		}
 	}
 
 }
@@ -139,14 +156,54 @@ void ScanAll()
 	}
 }
 
-vector <int> CrossRoads; // Список перекрестков (вершин с 3-4 соседями)
+vector <int> CrossRoads, // Список перекрестков (вершин с 3-4 соседями)
+			 PathBack;   // Путь возврата (список  вершин)
 
 void GoBack()
+// Делает путь возврата к последнему перекрестку(от тупика,
+// исследованного перекрестка, комнаты управления) поиском в ширину по графу
 {
+	int n = Graph.size(); // число вершин
+	queue<int> q;
+	q.push(GPos);
+	vector<bool> used(n);
+	vector<int> d(n), p(n);
+	used[GPos] = true;
+	p[GPos] = -1;
+	while (!q.empty()) {
+		int v = q.front();
+		q.pop();
+		for (size_t i = 0; i<Graph[v].size(); ++i) {
+			int to = Graph[v][i];
+			if (!used[to]) {
+				used[to] = true;
+				q.push(to);
+				d[to] = d[v] + 1;
+				p[to] = v;
+			}
+		}
+	}
+
+	int to = CrossRoads[CrossRoads.size() - 1];
+	if (!used[to])
+		cerr << "No path!";
+	else {
+
+		for (int v = to; v != -1; v = p[v])
+			PathBack.push_back(v);
+		PathBack.pop_back(); 
+	}
 }
 
 int SelectDestination()	// Выбирает вершину для следующего хода
 {
+	int n = PathBack.size();
+	if (n != 0) {		// Если список возврата не пуст, берем из него
+		n = PathBack[n - 1];
+		PathBack.pop_back();
+		if (PathBack.empty()) CrossRoads.pop_back();
+		return n;
+	}
 	if (Graph[GPos].size() > 2) {	// Перекресток - добавляем
 		CrossRoads.push_back(GPos);
 	}
@@ -155,10 +212,18 @@ int SelectDestination()	// Выбирает вершину для следующ
 		int Next = Graph[GPos][i];
 		if (GraphInfo[Next].visited) continue;
 		return Next;
-	}
-	GoBack();	// Возвращаемся, если некуда идти
+	}  // Нет непосещенных проходов
+	if (Graph[GPos].size() > 2) CrossRoads.pop_back();// Перекресток обследован, убираем
+	return -1; // Исследовать нечего, сигнал к возврату
 }
 
+void GetData()
+{
+	cin >> KR >> KC; cin.ignore();
+	for (int i = 0; i < R; i++) {
+		cin >> PArray[i]; cin.ignore();
+	}
+}
 int main()
 {
 	cin >> R >> C >> A; cin.ignore(); // Размер карты и время сигнализации
@@ -172,22 +237,62 @@ int main()
 		cin >> PArray[i]; cin.ignore(); // В массив
 	}
 
-	AddNode(KR, KC);    // Начальную позицию в граф
+	AddNode(KR, KC);    // Начальную позицию в граф, она посещена и перекресток
 	GraphInfo[0].visited = true;
-	ScanAll();
+	CrossRoads.push_back(0);
+	ScanAll();	        // Осмотр всех точек в пределах видимости
 
-	int Pos = 1;
+	bool Escaping = false; // Контрольную комнату не нашли
 	// game loop
 	while (1) {
-		DoStep(SelectDestination());
-
-		cin >> KR >> KC; cin.ignore();
-		for (int i = 0; i < R; i++) {
-			cin >> PArray[i]; cin.ignore();
+		int Dest = SelectDestination(); // Выбираем, куда идти 
+		if (Dest == -1) {            // Если некуда, отступаем к развилке
+			GoBack();
+			Dest = SelectDestination();
 		}
+		DoStep(Dest);               // Делаем шаг
+
+		GetData();                  // Читаем входные данные
 		if (!GraphInfo[GPos].visited) {
-			ScanAll();
-			GraphInfo[GPos].visited = true;
+			ScanAll();              // Осматриваемся // Можно оптимизировать
+			GraphInfo[GPos].visited = true; // Помечаем, что были здесь
+		}
+		if (Escaping) continue; // Вошли в комнату управления, убегаем 
+		if (KC > 0 && PArray[KR][KC - 1] == 'C') {
+			cout << "LEFT" << endl;
+			GetData();
+			cout << "RIGHT" << endl;
+			GetData(); // Считывем данные и  добавляем позицию в граф
+			CrossRoads.push_back(0); // Точка возврата - позиция 0 в графе
+			GoBack();
+			Escaping = true;
+		}
+		if (KC < C - 1 && PArray[KR][KC + 1] == 'C') {
+			cout << "RIGHT" << endl;
+			GetData();
+			cout << "LEFT" << endl;
+			GetData();
+			CrossRoads.push_back(0);
+			GoBack();
+			Escaping = true;
+		}
+		if (KR > 0 && PArray[KR - 1][KC] == 'C') {
+			cout << "UP" << endl;
+			GetData();
+			cout << "DOWN" << endl;
+			GetData();
+			CrossRoads.push_back(0);
+			GoBack();
+			Escaping = true;
+		}
+		if (KR < R - 1 && PArray[KR + 1][KC] == 'C') {
+			cout << "DOWN" << endl;
+			GetData();
+			cout << "UP" << endl;
+			GetData();
+			CrossRoads.push_back(0);
+			GoBack();
+			Escaping = true;
 		}
 	}
 }
