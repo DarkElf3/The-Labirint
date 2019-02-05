@@ -1,4 +1,4 @@
-#include <iostream>
+п»ї#include <iostream>
 #include <string>
 #include <vector>
 #include <algorithm>
@@ -9,16 +9,16 @@ using namespace std;
 * Auto-generated code below aims at helping you parse
 * the standard input according to the problem statement.
 **/
-static string *PArray; // Входная карта лабиринта
-static vector<int> Maze; // Карта с номерами вершин графа
-static vector< vector<int> > Graph; // Граф лабиринта
+static string *PArray; // Р’С…РѕРґРЅР°СЏ РєР°СЂС‚Р° Р»Р°Р±РёСЂРёРЅС‚Р°
+static vector<int> Maze; // РљР°СЂС‚Р° СЃ РЅРѕРјРµСЂР°РјРё РІРµСЂС€РёРЅ РіСЂР°С„Р°
+static vector< vector<int> > Graph; // Р“СЂР°С„ Р»Р°Р±РёСЂРёРЅС‚Р°
 static int R; // number of rows.
 static int C; // number of columns.
 static int A; // number of rounds between the time the alarm countdown is activated and the time the alarm goes off.
 
 void AddNode(int Row, int Col)
-// Добавляет вершину в граф. Связывает ребрами с соседними.
-// Если соседей нет в графе, то они добавляются рекурсивно.
+// Р”РѕР±Р°РІР»СЏРµС‚ РІРµСЂС€РёРЅСѓ РІ РіСЂР°С„. РЎРІСЏР·С‹РІР°РµС‚ СЂРµР±СЂР°РјРё СЃ СЃРѕСЃРµРґРЅРёРјРё.
+// Р•СЃР»Рё СЃРѕСЃРµРґРµР№ РЅРµС‚ РІ РіСЂР°С„Рµ, С‚Рѕ РѕРЅРё РґРѕР±Р°РІР»СЏСЋС‚СЃСЏ СЂРµРєСѓСЂСЃРёРІРЅРѕ.
 {
 	int Index = Row * R + Col;
 	if (Maze[Index] != -1) return;
@@ -27,47 +27,47 @@ void AddNode(int Row, int Col)
 	int GIndex = Graph.size() - 1;
 	Maze[Index] = GIndex;
 
-	if (Col > 0 && PArray[Row][Col - 1] == '.') { // Слева есть путь
+	if (Col > 0 && PArray[Row][Col - 1] == '.') { // РЎР»РµРІР° РµСЃС‚СЊ РїСѓС‚СЊ
 		int LeftGIndex = Maze[Index - 1];
-		if (LeftGIndex == -1) { // Поля слева нет в графе, добавляем
+		if (LeftGIndex == -1) { // РџРѕР»СЏ СЃР»РµРІР° РЅРµС‚ РІ РіСЂР°С„Рµ, РґРѕР±Р°РІР»СЏРµРј
 			Graph.push_back(Node);
 			LeftGIndex = Graph.size() - 1;
 			Maze[Index - 1] = LeftGIndex;
 		}
-		Graph[GIndex].push_back(LeftGIndex); // Делаем ребро 
+		Graph[GIndex].push_back(LeftGIndex); // Р”РµР»Р°РµРј СЂРµР±СЂРѕ 
 		Graph[LeftGIndex].push_back(GIndex);
 	}
 
-	if (Col < (C - 1) && PArray[Row][Col + 1] == '.') { // Справа есть путь
+	if (Col < (C - 1) && PArray[Row][Col + 1] == '.') { // РЎРїСЂР°РІР° РµСЃС‚СЊ РїСѓС‚СЊ
 		int RightGIndex = Maze[Index + 1];
-		if (RightGIndex == -1) { // Поля справа нет в графе, добавляем
+		if (RightGIndex == -1) { // РџРѕР»СЏ СЃРїСЂР°РІР° РЅРµС‚ РІ РіСЂР°С„Рµ, РґРѕР±Р°РІР»СЏРµРј
 			Graph.push_back(Node);
 			RightGIndex = Graph.size() - 1;
 			Maze[Index - 1] = RightGIndex;
 		}
-		Graph[GIndex].push_back(RightGIndex); // Делаем ребро 
+		Graph[GIndex].push_back(RightGIndex); // Р”РµР»Р°РµРј СЂРµР±СЂРѕ 
 		Graph[RightGIndex].push_back(GIndex);
 	}
 
-	if (Row > 0 && PArray[Row - 1][Col] == '.') { // Сверху есть путь
+	if (Row > 0 && PArray[Row - 1][Col] == '.') { // РЎРІРµСЂС…Сѓ РµСЃС‚СЊ РїСѓС‚СЊ
 		int UpGIndex = Maze[Index - C];
-		if (UpGIndex == -1) { // Поля сверху нет в графе, добавляем
+		if (UpGIndex == -1) { // РџРѕР»СЏ СЃРІРµСЂС…Сѓ РЅРµС‚ РІ РіСЂР°С„Рµ, РґРѕР±Р°РІР»СЏРµРј
 			Graph.push_back(Node);
 			UpGIndex = Graph.size() - 1;
 			Maze[Index - C] = UpGIndex;
 		}
-		Graph[GIndex].push_back(UpGIndex); // Делаем ребро 
+		Graph[GIndex].push_back(UpGIndex); // Р”РµР»Р°РµРј СЂРµР±СЂРѕ 
 		Graph[UpGIndex].push_back(GIndex);
 	}
 
-	if (Row < (R - 1) && PArray[Row + 1][Col] == '.') { // Снизу есть путь
+	if (Row < (R - 1) && PArray[Row + 1][Col] == '.') { // РЎРЅРёР·Сѓ РµСЃС‚СЊ РїСѓС‚СЊ
 		int DownGIndex = Maze[Index + C];
-		if (DownGIndex == -1) { // Поля снизу нет в графе, добавляем
+		if (DownGIndex == -1) { // РџРѕР»СЏ СЃРЅРёР·Сѓ РЅРµС‚ РІ РіСЂР°С„Рµ, РґРѕР±Р°РІР»СЏРµРј
 			Graph.push_back(Node);
 			DownGIndex = Graph.size() - 1;
 			Maze[Index + C] = DownGIndex;
 		}
-		Graph[GIndex].push_back(DownGIndex); // Делаем ребро 
+		Graph[GIndex].push_back(DownGIndex); // Р”РµР»Р°РµРј СЂРµР±СЂРѕ 
 		Graph[DownGIndex].push_back(GIndex);
 	}
 
@@ -75,20 +75,20 @@ void AddNode(int Row, int Col)
 
 int main()
 {
-	cin >> R >> C >> A; cin.ignore(); // Размер карты и время сигнализации
-	string Array[R];    // Символьная карта
-	PArray = Array;     // и глобальный указатель на нее
-	Maze.resize(R * C, -1); // Карта соответствия вершинам в  графе
+	cin >> R >> C >> A; cin.ignore(); // Р Р°Р·РјРµСЂ РєР°СЂС‚С‹ Рё РІСЂРµРјСЏ СЃРёРіРЅР°Р»РёР·Р°С†РёРё
+	string Array[R];    // РЎРёРјРІРѕР»СЊРЅР°СЏ РєР°СЂС‚Р°
+	PArray = Array;     // Рё РіР»РѕР±Р°Р»СЊРЅС‹Р№ СѓРєР°Р·Р°С‚РµР»СЊ РЅР° РЅРµРµ
+	Maze.resize(R * C, -1); // РљР°СЂС‚Р° СЃРѕРѕС‚РІРµС‚СЃС‚РІРёСЏ РІРµСЂС€РёРЅР°Рј РІ  РіСЂР°С„Рµ
 
 	int KR; // row where Kirk is located.
 	int KC; // column where Kirk is located.
 	cin >> KR >> KC; cin.ignore();
 	for (int i = 0; i < R; i++) {
 		//            string ROW; // C of the characters in '#.TC?' (i.e. one line of the ASCII maze).
-		cin >> PArray[i]; cin.ignore(); // В массив
+		cin >> PArray[i]; cin.ignore(); // Р’ РјР°СЃСЃРёРІ
 	}
 
-	AddNode(KR, KC);    // Начальную позицию в граф
+	AddNode(KR, KC);    // РќР°С‡Р°Р»СЊРЅСѓСЋ РїРѕР·РёС†РёСЋ РІ РіСЂР°С„
 
 						// game loop
 	while (1) {
@@ -98,7 +98,7 @@ int main()
 
 		cout << "RIGHT" << endl; // Kirk's next move (UP DOWN LEFT or RIGHT).
 
-		cin >> KR >> KC; cin.ignore(); // Читаем данные хода
+		cin >> KR >> KC; cin.ignore(); // Р§РёС‚Р°РµРј РґР°РЅРЅС‹Рµ С…РѕРґР°
 		for (int i = 0; i < R; i++) {
 			cin >> PArray[i]; cin.ignore();
 		}
