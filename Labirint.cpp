@@ -1,34 +1,34 @@
-#include <iostream>
+п»ї#include <iostream>
 #include <string>
 #include <vector>
 #include <algorithm>
-#include <queue>		// используем очередь
-#include <functional>   // для лямбд
-#include <assert.h>		// используется assert
+#include <queue>		// РёСЃРїРѕР»СЊР·СѓРµРј РѕС‡РµСЂРµРґСЊ
+#include <functional>   // РґР»СЏ Р»СЏРјР±Рґ
+#include <assert.h>		// РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ assert
 
 using namespace std;
 
-struct TNode { // Тип информации о вершинах графа
-	bool visited;				// посещалась ли
-	int Row, Col;				// строка, столбец
-	vector<int> Neighbours;		// соседи
+struct TNode { // РўРёРї РёРЅС„РѕСЂРјР°С†РёРё Рѕ РІРµСЂС€РёРЅР°С… РіСЂР°С„Р°
+	bool visited;				// РїРѕСЃРµС‰Р°Р»Р°СЃСЊ Р»Рё
+	int Row, Col;				// СЃС‚СЂРѕРєР°, СЃС‚РѕР»Р±РµС†
+	vector<int> Neighbours;		// СЃРѕСЃРµРґРё
 };
 
 class PathFinder {
 private:
-	const int SR = 2;			// ScanRange - дальность сканера
-	vector<string> Array;		// Входная карта лабиринта
-	vector< vector<int> > Maze;	// Карта с номерами вершин графа
+	const int SR = 2;			// ScanRange - РґР°Р»СЊРЅРѕСЃС‚СЊ СЃРєР°РЅРµСЂР°
+	vector<string> Array;		// Р’С…РѕРґРЅР°СЏ РєР°СЂС‚Р° Р»Р°Р±РёСЂРёРЅС‚Р°
+	vector< vector<int> > Maze;	// РљР°СЂС‚Р° СЃ РЅРѕРјРµСЂР°РјРё РІРµСЂС€РёРЅ РіСЂР°С„Р°
 	int R;						// number of rows.
 	int C;						// number of columns.
 	int A;						// number of rounds between the time the alarm countdown is activated and the time the alarm goes off.
 	int KR;						// row where Kirk is located.
 	int KC;						// column where Kirk is located.
-	vector<TNode> Graph;		// Граф лабиринта
-	int GPos = 0;				// Текущая позиция в графе
-	char *Command;				// Команда на движение. Вынесена на случай, если нужно будет знать последний ход
-	vector <int> CrossRoads,	// Список перекрестков (вершин с 3-4 соседями)
-				 PathBack;		// Путь возврата (список  вершин)	
+	vector<TNode> Graph;		// Р“СЂР°С„ Р»Р°Р±РёСЂРёРЅС‚Р°
+	int GPos = 0;				// РўРµРєСѓС‰Р°СЏ РїРѕР·РёС†РёСЏ РІ РіСЂР°С„Рµ
+	char *Command;				// РљРѕРјР°РЅРґР° РЅР° РґРІРёР¶РµРЅРёРµ. Р’С‹РЅРµСЃРµРЅР° РЅР° СЃР»СѓС‡Р°Р№, РµСЃР»Рё РЅСѓР¶РЅРѕ Р±СѓРґРµС‚ Р·РЅР°С‚СЊ РїРѕСЃР»РµРґРЅРёР№ С…РѕРґ
+	vector <int> CrossRoads,	// РЎРїРёСЃРѕРє РїРµСЂРµРєСЂРµСЃС‚РєРѕРІ (РІРµСЂС€РёРЅ СЃ 3-4 СЃРѕСЃРµРґСЏРјРё)
+				 PathBack;		// РџСѓС‚СЊ РІРѕР·РІСЂР°С‚Р° (СЃРїРёСЃРѕРє  РІРµСЂС€РёРЅ)	
 	void ScanAll();
 	void AddNode(int Row, int Col);	
 public:
@@ -39,12 +39,12 @@ public:
 	void GetData();
 	bool CheckForControlRoom();
 #ifdef DEBUG
-	void ShowScan();  // Отладочная функция. Выводит видимую область (5х5 вокруг Кирка)
+	void ShowScan();  // РћС‚Р»Р°РґРѕС‡РЅР°СЏ С„СѓРЅРєС†РёСЏ. Р’С‹РІРѕРґРёС‚ РІРёРґРёРјСѓСЋ РѕР±Р»Р°СЃС‚СЊ (5С…5 РІРѕРєСЂСѓРі РљРёСЂРєР°)
 #endif
 };
 		
 #ifdef DEBUG
-void PathFinder::ShowScan()  // Отладочная функция. Выводит видимую область (5х5 вокруг Кирка)
+void PathFinder::ShowScan()  // РћС‚Р»Р°РґРѕС‡РЅР°СЏ С„СѓРЅРєС†РёСЏ. Р’С‹РІРѕРґРёС‚ РІРёРґРёРјСѓСЋ РѕР±Р»Р°СЃС‚СЊ (5С…5 РІРѕРєСЂСѓРі РљРёСЂРєР°)
 {
 	for (int i = (KR < 2 ? 2 : KR) - 2; i < (KR + 3 > R ? R : KR + 3); i++) {
 		for (int j = (KC < 2 ? 2 : KC) - 2; j <(KC + 3 > C ? C : KC + 3); j++) {
@@ -55,79 +55,79 @@ void PathFinder::ShowScan()  // Отладочная функция. Выводит видимую область (5х5
 }
 #endif
 PathFinder::PathFinder() {
-	cin >> R >> C >> A; cin.ignore();	// Размер карты и время сигнализации
-	Array.resize(R);					// Символьная карта лабиринта
+	cin >> R >> C >> A; cin.ignore();	// Р Р°Р·РјРµСЂ РєР°СЂС‚С‹ Рё РІСЂРµРјСЏ СЃРёРіРЅР°Р»РёР·Р°С†РёРё
+	Array.resize(R);					// РЎРёРјРІРѕР»СЊРЅР°СЏ РєР°СЂС‚Р° Р»Р°Р±РёСЂРёРЅС‚Р°
 	Maze.resize(R);
 	for (int i = 0; i < R; i++)
-		Maze[i].resize(C, -1);			// Карта R x C соответствия вершинам в  графе
-	GetData();							// Считываем  входные данные нового хода
-	AddNode(KR, KC);					// Начальную позицию в граф, она посещена и перекресток
+		Maze[i].resize(C, -1);			// РљР°СЂС‚Р° R x C СЃРѕРѕС‚РІРµС‚СЃС‚РІРёСЏ РІРµСЂС€РёРЅР°Рј РІ  РіСЂР°С„Рµ
+	GetData();							// РЎС‡РёС‚С‹РІР°РµРј  РІС…РѕРґРЅС‹Рµ РґР°РЅРЅС‹Рµ РЅРѕРІРѕРіРѕ С…РѕРґР°
+	AddNode(KR, KC);					// РќР°С‡Р°Р»СЊРЅСѓСЋ РїРѕР·РёС†РёСЋ РІ РіСЂР°С„, РѕРЅР° РїРѕСЃРµС‰РµРЅР° Рё РїРµСЂРµРєСЂРµСЃС‚РѕРє
 	Graph[0].visited = true;
 	CrossRoads.push_back(0);
-	ScanAll();							// Осмотр всех точек в пределах видимости
+	ScanAll();							// РћСЃРјРѕС‚СЂ РІСЃРµС… С‚РѕС‡РµРє РІ РїСЂРµРґРµР»Р°С… РІРёРґРёРјРѕСЃС‚Рё
 }
 
 void PathFinder::AddNode(int Row, int Col)
-// Добавляет вершину в граф. Связывает ребрами с соседними.
-// Если соседей нет в графе, то они добавляются рекурсивно.
+// Р”РѕР±Р°РІР»СЏРµС‚ РІРµСЂС€РёРЅСѓ РІ РіСЂР°С„. РЎРІСЏР·С‹РІР°РµС‚ СЂРµР±СЂР°РјРё СЃ СЃРѕСЃРµРґРЅРёРјРё.
+// Р•СЃР»Рё СЃРѕСЃРµРґРµР№ РЅРµС‚ РІ РіСЂР°С„Рµ, С‚Рѕ РѕРЅРё РґРѕР±Р°РІР»СЏСЋС‚СЃСЏ СЂРµРєСѓСЂСЃРёРІРЅРѕ.
 {
-	if (Row < 0 || Row > R - 1 || Col < 0 || Col > C - 1) assert("Неверные координаты PathFinder::AddNode"); // return; // Проверка границ
-	if (Maze[Row][Col] != -1) return; // Вершина уже есть в графе
+	if (Row < 0 || Row > R - 1 || Col < 0 || Col > C - 1) assert("РќРµРІРµСЂРЅС‹Рµ РєРѕРѕСЂРґРёРЅР°С‚С‹ PathFinder::AddNode"); // return; // РџСЂРѕРІРµСЂРєР° РіСЂР°РЅРёС†
+	if (Maze[Row][Col] != -1) return; // Р’РµСЂС€РёРЅР° СѓР¶Рµ РµСЃС‚СЊ РІ РіСЂР°С„Рµ
 	TNode Node = { false, Row, Col };
-	Graph.push_back(Node);				// добавляем вершину в граф
+	Graph.push_back(Node);				// РґРѕР±Р°РІР»СЏРµРј РІРµСЂС€РёРЅСѓ РІ РіСЂР°С„
 	int GIndex = Graph.size() - 1;
-	Maze[Row][Col] = GIndex;			// отмечаем на карте
+	Maze[Row][Col] = GIndex;			// РѕС‚РјРµС‡Р°РµРј РЅР° РєР°СЂС‚Рµ
 
-	// Моя первая лямбда), делает ребра
+	// РњРѕСЏ РїРµСЂРІР°СЏ Р»СЏРјР±РґР°), РґРµР»Р°РµС‚ СЂРµР±СЂР°
 	function<void(int, int)> MakeWay = [GIndex, this](int LRow, int LCol) {
 		int LocalIndex = Maze[LRow][LCol];
-		if (LocalIndex == -1) { // Соседнего поля нет в графе, добавляем
+		if (LocalIndex == -1) { // РЎРѕСЃРµРґРЅРµРіРѕ РїРѕР»СЏ РЅРµС‚ РІ РіСЂР°С„Рµ, РґРѕР±Р°РІР»СЏРµРј
 			AddNode(LRow, LCol);
 			LocalIndex = Maze[LRow][LCol];
 		}
 		vector<int> *Neighbours = &Graph[GIndex].Neighbours;
 		if (std::find(Neighbours->begin(), Neighbours->end(), LocalIndex)
-			== Neighbours->end()) {					// Если ребра еще нет
-			Neighbours->push_back(LocalIndex);		 // Делаем ребро 
+			== Neighbours->end()) {					// Р•СЃР»Рё СЂРµР±СЂР° РµС‰Рµ РЅРµС‚
+			Neighbours->push_back(LocalIndex);		 // Р”РµР»Р°РµРј СЂРµР±СЂРѕ 
 			Graph[LocalIndex].Neighbours.push_back(GIndex);
 		}
 	};
 
-	if (Col > 0 && Array[Row][Col - 1] == '.') // Слева есть путь
+	if (Col > 0 && Array[Row][Col - 1] == '.') // РЎР»РµРІР° РµСЃС‚СЊ РїСѓС‚СЊ
 		MakeWay(Row, Col - 1);
-	if (Col < (C - 1) && Array[Row][Col + 1] == '.') // Справа есть путь
+	if (Col < (C - 1) && Array[Row][Col + 1] == '.') // РЎРїСЂР°РІР° РµСЃС‚СЊ РїСѓС‚СЊ
 		MakeWay(Row, Col + 1);
-	if (Row > 0 && Array[Row - 1][Col] == '.') // Сверху есть путь
+	if (Row > 0 && Array[Row - 1][Col] == '.') // РЎРІРµСЂС…Сѓ РµСЃС‚СЊ РїСѓС‚СЊ
 		MakeWay(Row - 1, Col);
-	if (Row < (R - 1) && Array[Row + 1][Col] == '.') // Снизу есть путь
+	if (Row < (R - 1) && Array[Row + 1][Col] == '.') // РЎРЅРёР·Сѓ РµСЃС‚СЊ РїСѓС‚СЊ
 		MakeWay(Row + 1, Col);
 }
 
 void PathFinder::DoStep(int Pos)
-// Делает ход от текущей вершины графа к заданной
+// Р”РµР»Р°РµС‚ С…РѕРґ РѕС‚ С‚РµРєСѓС‰РµР№ РІРµСЂС€РёРЅС‹ РіСЂР°С„Р° Рє Р·Р°РґР°РЅРЅРѕР№
 {
 	int Horizontal = Graph[Pos].Col - Graph[GPos].Col;
-	Command = "Wrong Destination";  // Неправильный ход
-	if (Horizontal != 0) {          // По горизонтали
+	Command = "Wrong Destination";  // РќРµРїСЂР°РІРёР»СЊРЅС‹Р№ С…РѕРґ
+	if (Horizontal != 0) {          // РџРѕ РіРѕСЂРёР·РѕРЅС‚Р°Р»Рё
 		if (Horizontal < 0)
 			Command = "LEFT";
 		else
 			Command = "RIGHT";
 	}
 	int Vertical = Graph[Pos].Row - Graph[GPos].Row;
-	if (Vertical != 0) {            // По вертикали
+	if (Vertical != 0) {            // РџРѕ РІРµСЂС‚РёРєР°Р»Рё
 		if (Vertical < 0)
 			Command = "UP";
 		else
 			Command = "DOWN";
 	}
-	cout << Command << endl;        // Делаем ход
-	GPos = Pos;                     // Текущая позиция
+	cout << Command << endl;        // Р”РµР»Р°РµРј С…РѕРґ
+	GPos = Pos;                     // РўРµРєСѓС‰Р°СЏ РїРѕР·РёС†РёСЏ
 }
 
 void PathFinder::ScanAll()
-// Сканирует видимую область ((2*SR+1)х(2*SR+1) вокруг Кирка) c учетом границ лабиринта
-// Увиденные вершины добавляются в граф.
+// РЎРєР°РЅРёСЂСѓРµС‚ РІРёРґРёРјСѓСЋ РѕР±Р»Р°СЃС‚СЊ ((2*SR+1)С…(2*SR+1) РІРѕРєСЂСѓРі РљРёСЂРєР°) c СѓС‡РµС‚РѕРј РіСЂР°РЅРёС† Р»Р°Р±РёСЂРёРЅС‚Р°
+// РЈРІРёРґРµРЅРЅС‹Рµ РІРµСЂС€РёРЅС‹ РґРѕР±Р°РІР»СЏСЋС‚СЃСЏ РІ РіСЂР°С„.
 {
 	for (int i = (KR < SR ? SR : KR) - SR; i < (KR + SR  + 1 > R ? R : KR + SR + 1); i++) {
 		for (int j = (KC < SR ? SR : KC) - SR; j <(KC + SR + 1 > C ? C : KC + SR + 1); j++) {
@@ -137,19 +137,19 @@ void PathFinder::ScanAll()
 }
 
 int PathFinder::GoBack()
-// Делает путь возврата к последнему перекрестку(от тупика,
-// исследованного перекрестка, комнаты управления) поиском в ширину по графу
+// Р”РµР»Р°РµС‚ РїСѓС‚СЊ РІРѕР·РІСЂР°С‚Р° Рє РїРѕСЃР»РµРґРЅРµРјСѓ РїРµСЂРµРєСЂРµСЃС‚РєСѓ(РѕС‚ С‚СѓРїРёРєР°,
+// РёСЃСЃР»РµРґРѕРІР°РЅРЅРѕРіРѕ РїРµСЂРµРєСЂРµСЃС‚РєР°, РєРѕРјРЅР°С‚С‹ СѓРїСЂР°РІР»РµРЅРёСЏ) РїРѕРёСЃРєРѕРј РІ С€РёСЂРёРЅСѓ РїРѕ РіСЂР°С„Сѓ
 {
-	int n = Graph.size();   // число вершин в графе
-	queue<int> Queue;       // очередь вершин
-	vector<bool> Visited(n);// обработанные вершины
-	vector<int> Dist(n);  // Длина пути до вершины (не нужна пока)
-	vector<int> Prev(n);    // откуда пришли
-	Queue.push(GPos);      // Начинаем с текущей позиции
+	int n = Graph.size();   // С‡РёСЃР»Рѕ РІРµСЂС€РёРЅ РІ РіСЂР°С„Рµ
+	queue<int> Queue;       // РѕС‡РµСЂРµРґСЊ РІРµСЂС€РёРЅ
+	vector<bool> Visited(n);// РѕР±СЂР°Р±РѕС‚Р°РЅРЅС‹Рµ РІРµСЂС€РёРЅС‹
+	vector<int> Dist(n);  // Р”Р»РёРЅР° РїСѓС‚Рё РґРѕ РІРµСЂС€РёРЅС‹ (РЅРµ РЅСѓР¶РЅР° РїРѕРєР°)
+	vector<int> Prev(n);    // РѕС‚РєСѓРґР° РїСЂРёС€Р»Рё
+	Queue.push(GPos);      // РќР°С‡РёРЅР°РµРј СЃ С‚РµРєСѓС‰РµР№ РїРѕР·РёС†РёРё
 	Visited[GPos] = true;
 	Prev[GPos] = -1;
-	while (!Queue.empty()) {    // Берем из очереди вершину и добавляем туда
-		int Pos = Queue.front();// непосещенных соседей
+	while (!Queue.empty()) {    // Р‘РµСЂРµРј РёР· РѕС‡РµСЂРµРґРё РІРµСЂС€РёРЅСѓ Рё РґРѕР±Р°РІР»СЏРµРј С‚СѓРґР°
+		int Pos = Queue.front();// РЅРµРїРѕСЃРµС‰РµРЅРЅС‹С… СЃРѕСЃРµРґРµР№
 		Queue.pop();
 		for (size_t i = 0; i < Graph[Pos].Neighbours.size(); i++) {
 			int Neighbour = Graph[Pos].Neighbours[i];
@@ -161,43 +161,43 @@ int PathFinder::GoBack()
 			}
 		}
 	}
-	// Можно завернуть в лямбду и прерваться на точке назначения
+	// РњРѕР¶РЅРѕ Р·Р°РІРµСЂРЅСѓС‚СЊ РІ Р»СЏРјР±РґСѓ Рё РїСЂРµСЂРІР°С‚СЊСЃСЏ РЅР° С‚РѕС‡РєРµ РЅР°Р·РЅР°С‡РµРЅРёСЏ
 	int Dest = CrossRoads[CrossRoads.size() - 1];
 	if (!Visited[Dest])     // 
 		cerr << "No path!";
 	else {
 		for (int Pos = Dest; Prev[Pos] != -1; Pos = Prev[Pos])
-			PathBack.push_back(Pos);// Путь к вершине назначения Dest
+			PathBack.push_back(Pos);// РџСѓС‚СЊ Рє РІРµСЂС€РёРЅРµ РЅР°Р·РЅР°С‡РµРЅРёСЏ Dest
 	}
-	return Dist[Dest]; // Возвращаем длину пути
+	return Dist[Dest]; // Р’РѕР·РІСЂР°С‰Р°РµРј РґР»РёРЅСѓ РїСѓС‚Рё
 }
 
-int PathFinder::SelectDestination()	// Выбирает вершину для следующего хода
+int PathFinder::SelectDestination()	// Р’С‹Р±РёСЂР°РµС‚ РІРµСЂС€РёРЅСѓ РґР»СЏ СЃР»РµРґСѓСЋС‰РµРіРѕ С…РѕРґР°
 {
 	int n = PathBack.size();
-	if (n != 0) {		// Если список возврата не пуст, берем из него
+	if (n != 0) {		// Р•СЃР»Рё СЃРїРёСЃРѕРє РІРѕР·РІСЂР°С‚Р° РЅРµ РїСѓСЃС‚, Р±РµСЂРµРј РёР· РЅРµРіРѕ
 		n = PathBack[n - 1];
 		PathBack.pop_back();
 		if (PathBack.empty()) CrossRoads.pop_back();
 		return n;
 	}
-	if (Graph[GPos].Neighbours.size() > 2) {	// Перекресток - добавляем
+	if (Graph[GPos].Neighbours.size() > 2) {	// РџРµСЂРµРєСЂРµСЃС‚РѕРє - РґРѕР±Р°РІР»СЏРµРј
 		CrossRoads.push_back(GPos);
 	}
-	for (size_t i = 0; i < Graph[GPos].Neighbours.size(); i++) // Ищем непосещенного соседа
+	for (size_t i = 0; i < Graph[GPos].Neighbours.size(); i++) // РС‰РµРј РЅРµРїРѕСЃРµС‰РµРЅРЅРѕРіРѕ СЃРѕСЃРµРґР°
 	{
 		int Next = Graph[GPos].Neighbours[i];
 		if (Graph[Next].visited) continue;
 		return Next;
-	}  // Нет непосещенных проходов
-	if (Graph[GPos].Neighbours.size() > 2) CrossRoads.pop_back();// Перекресток обследован, убираем
-	return -1; // Исследовать нечего, сигнал к возврату
+	}  // РќРµС‚ РЅРµРїРѕСЃРµС‰РµРЅРЅС‹С… РїСЂРѕС…РѕРґРѕРІ
+	if (Graph[GPos].Neighbours.size() > 2) CrossRoads.pop_back();// РџРµСЂРµРєСЂРµСЃС‚РѕРє РѕР±СЃР»РµРґРѕРІР°РЅ, СѓР±РёСЂР°РµРј
+	return -1; // РСЃСЃР»РµРґРѕРІР°С‚СЊ РЅРµС‡РµРіРѕ, СЃРёРіРЅР°Р» Рє РІРѕР·РІСЂР°С‚Сѓ
 }
 
-void PathFinder::GetData()// Считываем  входные данные нового хода
+void PathFinder::GetData()// РЎС‡РёС‚С‹РІР°РµРј  РІС…РѕРґРЅС‹Рµ РґР°РЅРЅС‹Рµ РЅРѕРІРѕРіРѕ С…РѕРґР°
 {
-	cin >> KR >> KC; cin.ignore();  // Позиция Кирка
-	for (int i = 0; i < R; i++) {   // Символьная  карта
+	cin >> KR >> KC; cin.ignore();  // РџРѕР·РёС†РёСЏ РљРёСЂРєР°
+	for (int i = 0; i < R; i++) {   // РЎРёРјРІРѕР»СЊРЅР°СЏ  РєР°СЂС‚Р°
 		cin >> Array[i]; cin.ignore();
 	}
 }
@@ -205,12 +205,12 @@ void PathFinder::GetData()// Считываем  входные данные нового хода
 bool PathFinder::CheckForControlRoom()
 {
 	if (!Graph[GPos].visited) {
-		ScanAll();              // Осматриваемся // Можно оптимизировать
-		Graph[GPos].visited = true; // Помечаем, что были здесь
+		ScanAll();              // РћСЃРјР°С‚СЂРёРІР°РµРјСЃСЏ // РњРѕР¶РЅРѕ РѕРїС‚РёРјРёР·РёСЂРѕРІР°С‚СЊ
+		Graph[GPos].visited = true; // РџРѕРјРµС‡Р°РµРј, С‡С‚Рѕ Р±С‹Р»Рё Р·РґРµСЃСЊ
 	}
-	bool Found = false; // Контрольную комнату не нашли
+	bool Found = false; // РљРѕРЅС‚СЂРѕР»СЊРЅСѓСЋ РєРѕРјРЅР°С‚Сѓ РЅРµ РЅР°С€Р»Рё
 	string Command;
-	// Лямбда для входа в комнату управления сверху, снизу, слева, справа
+	// Р›СЏРјР±РґР° РґР»СЏ РІС…РѕРґР° РІ РєРѕРјРЅР°С‚Сѓ СѓРїСЂР°РІР»РµРЅРёСЏ СЃРІРµСЂС…Сѓ, СЃРЅРёР·Сѓ, СЃР»РµРІР°, СЃРїСЂР°РІР°
 	function <void(string, int, int)> EnterControlRoom = [&Found, &Command, this](string S, int LR, int LC) {
 		Command = S;
 		AddNode(LR, LC);
@@ -221,16 +221,16 @@ bool PathFinder::CheckForControlRoom()
 	if (KC < C - 1 && Array[KR][KC + 1] == 'C') EnterControlRoom("RIGHT", KR, KC + 1);
 	if (KR > 0 && Array[KR - 1][KC] == 'C') EnterControlRoom("UP", KR - 1, KC);
 	if (KR < R - 1 && Array[KR + 1][KC] == 'C') EnterControlRoom("DOWN", KR + 1, KC);
-	if (Found) {	// Нашли комнату управления
-		CrossRoads.push_back(0);		// Точка возврата - позиция 0 в графе
-		int Dist = GoBack();			// Прокладываем кратчайший путь возврата 
-		if (Dist > A) {					// и если он длиннее нужного, идем дальше 
-			GPos = Maze[KR][KC];		// возвращаем текущую позицию
-			PathBack.clear();			// очищаем список возврата
-			CrossRoads.pop_back();		// убирает точку возврата
+	if (Found) {	// РќР°С€Р»Рё РєРѕРјРЅР°С‚Сѓ СѓРїСЂР°РІР»РµРЅРёСЏ
+		CrossRoads.push_back(0);		// РўРѕС‡РєР° РІРѕР·РІСЂР°С‚Р° - РїРѕР·РёС†РёСЏ 0 РІ РіСЂР°С„Рµ
+		int Dist = GoBack();			// РџСЂРѕРєР»Р°РґС‹РІР°РµРј РєСЂР°С‚С‡Р°Р№С€РёР№ РїСѓС‚СЊ РІРѕР·РІСЂР°С‚Р° 
+		if (Dist > A) {					// Рё РµСЃР»Рё РѕРЅ РґР»РёРЅРЅРµРµ РЅСѓР¶РЅРѕРіРѕ, РёРґРµРј РґР°Р»СЊС€Рµ 
+			GPos = Maze[KR][KC];		// РІРѕР·РІСЂР°С‰Р°РµРј С‚РµРєСѓС‰СѓСЋ РїРѕР·РёС†РёСЋ
+			PathBack.clear();			// РѕС‡РёС‰Р°РµРј СЃРїРёСЃРѕРє РІРѕР·РІСЂР°С‚Р°
+			CrossRoads.pop_back();		// СѓР±РёСЂР°РµС‚ С‚РѕС‡РєСѓ РІРѕР·РІСЂР°С‚Р°
 		}
 		else {
-			cout << Command << endl;	// все хорошо - заходим в комнату упраления
+			cout << Command << endl;	// РІСЃРµ С…РѕСЂРѕС€Рѕ - Р·Р°С…РѕРґРёРј РІ РєРѕРјРЅР°С‚Сѓ СѓРїСЂР°Р»РµРЅРёСЏ
 			GetData();
 			return true;
 		}
@@ -241,17 +241,17 @@ bool PathFinder::CheckForControlRoom()
 int main()
 {
 	PathFinder pf;
-	bool Escaping = false; // Контрольную комнату не нашли
+	bool Escaping = false; // РљРѕРЅС‚СЂРѕР»СЊРЅСѓСЋ РєРѕРјРЅР°С‚Сѓ РЅРµ РЅР°С€Р»Рё
 	while (1) {
-		if (!Escaping)  // Если нашли комнату управления, просто бежим назад кратчайшим путем
+		if (!Escaping)  // Р•СЃР»Рё РЅР°С€Р»Рё РєРѕРјРЅР°С‚Сѓ СѓРїСЂР°РІР»РµРЅРёСЏ, РїСЂРѕСЃС‚Рѕ Р±РµР¶РёРј РЅР°Р·Р°Рґ РєСЂР°С‚С‡Р°Р№С€РёРј РїСѓС‚РµРј
 			Escaping = pf.CheckForControlRoom();
-		int Dest = pf.SelectDestination(); // Выбираем, куда идти 
-		if (Dest == -1) {            // Если некуда, отступаем к развилке
+		int Dest = pf.SelectDestination(); // Р’С‹Р±РёСЂР°РµРј, РєСѓРґР° РёРґС‚Рё 
+		if (Dest == -1) {            // Р•СЃР»Рё РЅРµРєСѓРґР°, РѕС‚СЃС‚СѓРїР°РµРј Рє СЂР°Р·РІРёР»РєРµ
 			pf.GoBack();
 			Dest = pf.SelectDestination();
 		}
-		pf.DoStep(Dest);               // Делаем шаг
-		pf.GetData();                  // Читаем входные данные
+		pf.DoStep(Dest);               // Р”РµР»Р°РµРј С€Р°Рі
+		pf.GetData();                  // Р§РёС‚Р°РµРј РІС…РѕРґРЅС‹Рµ РґР°РЅРЅС‹Рµ
 		
 	}
 }        
