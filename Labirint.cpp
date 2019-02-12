@@ -159,8 +159,7 @@ int CPathFinder::GoBack()
 	while (!Queue.empty()) {     // Берем из очереди вершину и добавляем туда
 		int Pos = Queue.front(); // непосещенных соседей
 		Queue.pop();
-		for (size_t i = 0; i < Graph[Pos].Neighbours.size(); i++) {
-			int Neighbour = Graph[Pos].Neighbours[i];
+		for (int Neighbour : Graph[Pos].Neighbours) {
 			if (!Visited[Neighbour]) {
 				Visited[Neighbour] = true;
 				Queue.push(Neighbour);
@@ -184,10 +183,10 @@ int CPathFinder::SelectDestination()	// Выбирает вершину для �
 {
 	int n = PathBack.size();
 	if (n != 0) {		// Если список возврата не пуст, берем из него
-		n = PathBack[n - 1];
+		int Next = PathBack[n - 1];
 		PathBack.pop_back();
 		if (PathBack.empty()) CrossRoads.pop_back();
-		return n;
+		return Next;
 	}
 	if (Graph[GraphPos].Neighbours.size() > 2) {	// Перекресток - добавляем
 		CrossRoads.push_back(GraphPos);
