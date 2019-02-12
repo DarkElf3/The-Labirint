@@ -1,4 +1,5 @@
-﻿#include <iostream>
+﻿
+#include <iostream>
 #include <string>
 #include <vector>
 #include <algorithm>
@@ -16,10 +17,10 @@ struct TNode { // Тип информации о вершинах графа
 
 class PathFinder {
 private:
-	const int SR = 2;			// ScanRange - дальность сканера
+	const int SR = 2;			// SR - дальность сканера
 	vector<string> Array;		// Входная карта лабиринта
 	vector< vector<int> > Maze;	// Карта с номерами вершин графа
-	int R;						// number of rows.
+	int R;						// number of R.
 	int C;						// number of columns.
 	int A;						// number of rounds between the time the alarm countdown is activated and the time the alarm goes off.
 	int KR;						// row where Kirk is located.
@@ -28,9 +29,9 @@ private:
 	int GPos = 0;				// Текущая позиция в графе
 	char *Command;				// Команда на движение. Вынесена на случай, если нужно будет знать последний ход
 	vector <int> CrossRoads,	// Список перекрестков (вершин с 3-4 соседями)
-				 PathBack;		// Путь возврата (список  вершин)	
+		PathBack;		// Путь возврата (список  вершин)	
 	void ScanAll();
-	void AddNode(int Row, int Col);	
+	void AddNode(int Row, int Col);
 public:
 	PathFinder();
 	void DoStep(int Pos);
@@ -42,12 +43,16 @@ public:
 	void ShowScan();  // Отладочная функция. Выводит видимую область (5х5 вокруг Кирка)
 #endif
 };
-		
+
 #ifdef DEBUG
 void PathFinder::ShowScan()  // Отладочная функция. Выводит видимую область (5х5 вокруг Кирка)
 {
-	for (int i = (KR < 2 ? 2 : KR) - 2; i < (KR + 3 > R ? R : KR + 3); i++) {
-		for (int j = (KC < 2 ? 2 : KC) - 2; j <(KC + 3 > C ? C : KC + 3); j++) {
+	int StartRow = (KR < SR ? SR : KR) - SR;
+	int RowsToScan = KR + SR + 1 > R ? R : KR + SR + 1;
+	int StartCol = (KC < SR ? SR : KC) - SR;
+	int ColsToScan = KC + SR + 1 > C ? C : KC + SR + 1;
+	for (int i = StartRow; i < RowsToScan; i++) {
+		for (int j = StartCol; j < ColsToScan; j++) {
 			cerr << Maze[i][j] << ' ';
 		}
 		cerr << endl;
@@ -78,7 +83,7 @@ void PathFinder::AddNode(int Row, int Col)
 	int GIndex = Graph.size() - 1;
 	Maze[Row][Col] = GIndex;			// отмечаем на карте
 
-	// Моя первая лямбда), делает ребра
+										// Моя первая лямбда), делает ребра
 	function<void(int, int)> MakeWay = [GIndex, this](int LRow, int LCol) {
 		int LocalIndex = Maze[LRow][LCol];
 		if (LocalIndex == -1) { // Соседнего поля нет в графе, добавляем
@@ -129,8 +134,12 @@ void PathFinder::ScanAll()
 // Сканирует видимую область ((2*SR+1)х(2*SR+1) вокруг Кирка) c учетом границ лабиринта
 // Увиденные вершины добавляются в граф.
 {
-	for (int i = (KR < SR ? SR : KR) - SR; i < (KR + SR  + 1 > R ? R : KR + SR + 1); i++) {
-		for (int j = (KC < SR ? SR : KC) - SR; j <(KC + SR + 1 > C ? C : KC + SR + 1); j++) {
+	int StartRow = (KR < SR ? SR : KR) - SR;
+	int RowsToScan = KR + SR + 1 > R ? R : KR + SR + 1;
+	int StartCol = (KC < SR ? SR : KC) - SR;
+	int ColsToScan = KC + SR + 1 > C ? C : KC + SR + 1;
+	for (int i = StartRow; i < RowsToScan; i++) {
+		for (int j = StartCol; j < ColsToScan; j++) {
 			if (Array[i][j] == '.') AddNode(i, j);
 		}
 	}
@@ -252,6 +261,6 @@ int main()
 		}
 		pf.DoStep(Dest);               // Делаем шаг
 		pf.GetData();                  // Читаем входные данные
-		
+
 	}
-}        
+}
