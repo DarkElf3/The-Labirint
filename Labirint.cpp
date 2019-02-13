@@ -83,7 +83,7 @@ void CPathFinder::AddNode(int Row, int Col)
 	Maze[Row][Col] = GIndex;			// отмечаем на карте
 
 	// Моя первая лямбда), делает ребра
-	function<void(int, int)> MakeWay = [GIndex, this](int LRow, int LCol) {
+	function<void(int, int)> MakeLink = [GIndex, this](int LRow, int LCol) {
 		int LocalIndex = Maze[LRow][LCol];
 		if (LocalIndex == -1) { // Соседнего поля нет в графе, добавляем
 			AddNode(LRow, LCol);
@@ -98,13 +98,13 @@ void CPathFinder::AddNode(int Row, int Col)
 	};
 
 	if (Col > 0 && Array[Row][Col - 1] == '.')          // Слева есть путь
-		MakeWay(Row, Col - 1);
+		MakeLink(Row, Col - 1);
 	if (Col < (Cols - 1) && Array[Row][Col + 1] == '.') // Справа есть путь
-		MakeWay(Row, Col + 1);
+		MakeLink(Row, Col + 1);
 	if (Row > 0 && Array[Row - 1][Col] == '.')          // Сверху есть путь
-		MakeWay(Row - 1, Col);
+		MakeLink(Row - 1, Col);
 	if (Row < (Rows - 1) && Array[Row + 1][Col] == '.') // Снизу есть путь
-		MakeWay(Row + 1, Col);
+		MakeLink(Row + 1, Col);
 }
 
 void CPathFinder::DoStep(int Pos)
@@ -156,6 +156,7 @@ int CPathFinder::GoBack()
 	Queue.push(GraphPos);      // Начинаем с текущей позиции
 	Visited[GraphPos] = true;
 	Prev[GraphPos] = -1;
+	int Dest = CrossRoads[CrossRoads.size() - 1];
 	while (!Queue.empty()) {     // Берем из очереди вершину и добавляем туда
 		int Pos = Queue.front(); // непосещенных соседей
 		Queue.pop();
@@ -166,10 +167,14 @@ int CPathFinder::GoBack()
 				Dist[Neighbour] = Dist[Pos] + 1;
 				Prev[Neighbour] = Pos;
 			}
+			if (Neighbour == Dest) {        // Нашли нужную вершину
+				while (!Queue.empty()) {    // Очищаем очередь для выхода из цикла
+					Queue.pop();            // Можно завернуть в лямбду и return
+				}                           // Можно goto
+				break;
+			}
 		}
 	}
-	// Можно завернуть в лямбду и прерваться на точке назначения
-	int Dest = CrossRoads[CrossRoads.size() - 1];
 	if (!Visited[Dest])     // 
 		cerr << "No path!";
 	else {
@@ -218,16 +223,16 @@ bool CPathFinder::CheckForControlRoom()
 	bool Found = false; // Контрольную комнату не нашли
 	string Command;
 	// Лямбда для входа в комнату управления сверху, снизу, слева, справа
-	function <void(string, int, int)> EnterControlRoom = [&Found, &Command, this](string S, int LR, int LC) {
+	function <void(string, int, int)> AddControlRoom = [&Found, &Command, this](string S, int LR, int LC) {
 		Command = S;
 		AddNode(LR, LC);
 		GraphPos = Maze[LR][LC];
 		Found = true;
 	};
-	if (KirkCol > 0 && Array[KirkRow][KirkCol - 1] == 'C') EnterControlRoom("LEFT", KirkRow, KirkCol - 1);
-	if (KirkCol < Cols - 1 && Array[KirkRow][KirkCol + 1] == 'C') EnterControlRoom("RIGHT", KirkRow, KirkCol + 1);
-	if (KirkRow > 0 && Array[KirkRow - 1][KirkCol] == 'C') EnterControlRoom("UP", KirkRow - 1, KirkCol);
-	if (KirkRow < Rows - 1 && Array[KirkRow + 1][KirkCol] == 'C') EnterControlRoom("DOWN", KirkRow + 1, KirkCol);
+	if (KirkCol > 0 && Array[KirkRow][KirkCol - 1] == 'C') AddControlRoom("LEFT", KirkRow, KirkCol - 1);
+	if (KirkCol < Cols - 1 && Array[KirkRow][KirkCol + 1] == 'C') AddControlRoom("RIGHT", KirkRow, KirkCol + 1);
+	if (KirkRow > 0 && Array[KirkRow - 1][KirkCol] == 'C') AddControlRoom("UP", KirkRow - 1, KirkCol);
+	if (KirkRow < Rows - 1 && Array[KirkRow + 1][KirkCol] == 'C') AddControlRoom("DOWN", KirkRow + 1, KirkCol);
 	if (Found) {	// Нашли комнату управления
 		CrossRoads.push_back(0);		            // Точка возврата - позиция 0 в графе
 		int Dist = GoBack();			            // Прокладываем кратчайший путь возврата 
