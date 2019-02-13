@@ -75,7 +75,8 @@ void CPathFinder::AddNode(int Row, int Col)
 // Добавляет вершину в граф. Связывает ребрами с соседними.
 // Если соседей нет в графе, то они добавляются рекурсивно.
 {
-	if (Row < 0 || Row > Rows - 1 || Col < 0 || Col > Cols - 1) assert("Неверные координаты PathFinder::AddNode"); // return; // Проверка границ
+	assert(Row >= 0 && Row < Rows && "Неверный номер строки в CPathFinder::AddNode"); // return; // Проверка границ
+	assert(Col >= 0 && Col < Cols && "Неверный номер столбца в CPathFinder::AddNode");
 	if (Maze[Row][Col] != -1) return;   // Вершина уже есть в графе
 	TNode Node = { false, Row, Col };
 	Graph.push_back(Node);				// добавляем вершину в граф
@@ -89,10 +90,10 @@ void CPathFinder::AddNode(int Row, int Col)
 			AddNode(LRow, LCol);
 			LocalIndex = Maze[LRow][LCol];
 		}
-		vector<int> *Neighbours = &Graph[GIndex].Neighbours;
-		if (std::find(Neighbours->begin(), Neighbours->end(), LocalIndex)
-			== Neighbours->end()) {					 // Если ребра еще нет
-			Neighbours->push_back(LocalIndex);		 // Делаем ребро 
+		auto &Neighbours = Graph[GIndex].Neighbours;
+		if (std::find(Neighbours.begin(), Neighbours.end(), LocalIndex)
+			== Neighbours.end()) {					 // Если ребра еще нет
+			Neighbours.push_back(LocalIndex);		 // Делаем ребро 
 			Graph[LocalIndex].Neighbours.push_back(GIndex);
 		}
 	};
