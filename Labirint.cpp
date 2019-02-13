@@ -28,13 +28,15 @@ private:
 	int GraphPos = 0;			// Текущая позиция в графе
 	char *Command;				// Команда на движение. Вынесена на случай, если нужно будет знать последний ход
 	vector <int> CrossRoads,	// Список перекрестков (вершин с 3-4 соседями)
-				 PathBack;		// Путь возврата (список  вершин)	
+				 PathBack,		// Путь возврата (список  вершин)	
+				 PathFromStart; // Текущий путь от начала (клубок ниток)
 	void ScanAll();
 	void AddNode(int Row, int Col);	
+	int GoBackToStart();
 public:
 	CPathFinder();
 	void DoStep(int Pos);
-	int GoBack();
+	void GoBack();
 	int SelectDestination();
 	void GetData();
 	bool CheckForControlRoom();
@@ -126,7 +128,7 @@ void CPathFinder::DoStep(int Pos)
 		else
 			Command = "DOWN";
 	}
-	cout << Command << endl;        // Делаем ход
+	cout << Command << endl;        // Делаем ход	
 	GraphPos = Pos;                 // Текущая позиция
 }
 
@@ -145,10 +147,10 @@ void CPathFinder::ScanAll()
 	}
 }
 
-int CPathFinder::GoBack()
-// Делает путь возврата к последнему перекрестку(от тупика,
-// исследованного перекрестка, комнаты управления) поиском в ширину по графу
+int CPathFinder::GoBackToStart()
+// Делает путь возврата из комнаты управления в начало поиском в ширину по графу
 {
+	const int Dest = 0;
 	int n = Graph.size();      // число вершин в графе
 	queue<int> Queue;          // очередь вершин
 	vector<bool> Visited(n);   // обработанные вершины
@@ -157,7 +159,6 @@ int CPathFinder::GoBack()
 	Queue.push(GraphPos);      // Начинаем с текущей позиции
 	Visited[GraphPos] = true;
 	Prev[GraphPos] = -1;
-	int Dest = CrossRoads[CrossRoads.size() - 1];
 	while (!Queue.empty()) {     // Берем из очереди вершину и добавляем туда
 		int Pos = Queue.front(); // непосещенных соседей
 		Queue.pop();
@@ -201,6 +202,7 @@ int CPathFinder::SelectDestination()	// Выбирает вершину для �
 	{
 		int Next = Graph[GraphPos].Neighbours[i];
 		if (Graph[Next].Visited) continue;
+		PathFromStart.push_back(GraphPos);    // Добавляем в список от старта (разматываем нить)
 		return Next;
 	}  // Нет непосещенных проходов
 	if (Graph[GraphPos].Neighbours.size() > 2) CrossRoads.pop_back();// Перекресток обследован, убираем
@@ -235,12 +237,10 @@ bool CPathFinder::CheckForControlRoom()
 	if (KirkRow > 0 && Array[KirkRow - 1][KirkCol] == 'C') AddControlRoom("UP", KirkRow - 1, KirkCol);
 	if (KirkRow < Rows - 1 && Array[KirkRow + 1][KirkCol] == 'C') AddControlRoom("DOWN", KirkRow + 1, KirkCol);
 	if (Found) {	// Нашли комнату управления
-		CrossRoads.push_back(0);		            // Точка возврата - позиция 0 в графе
-		int Dist = GoBack();			            // Прокладываем кратчайший путь возврата 
+		int Dist = GoBackToStart();			            // Прокладываем кратчайший путь возврата 
 		if (Dist > Alarm) {					        // и если он длиннее нужного, идем дальше 
 			GraphPos = Maze[KirkRow][KirkCol];		// возвращаем текущую позицию
 			PathBack.clear();			            // очищаем список возврата
-			CrossRoads.pop_back();		            // убирает точку возврата
 		}
 		else {
 			cout << Command << endl;	// все хорошо - заходим в комнату упраления
@@ -249,6 +249,21 @@ bool CPathFinder::CheckForControlRoom()
 		}
 	}
 	return false;
+}
+
+void CPathFinder::GoBack()
+// Делает путь возврата к последнему перекрестку(от тупика или исследованного перекрестка)
+{
+	int Dest = CrossRoads[CrossRoads.size() - 1];    // Последний перекресток
+	int Index = PathFromStart.size() - 1;            // Предыдущая позиция
+	int Node;
+	do {
+		Node = PathFromStart[Index];                 
+		PathBack.push_back(Node);                    // В путь возврата заносим
+		Index--;
+		PathFromStart.pop_back();                    // Из пути от начала убираем (смытываем нить)
+	} while (Dest != Node);
+	reverse(PathBack.begin(), PathBack.end());
 }
 
 int main()
