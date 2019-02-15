@@ -34,12 +34,13 @@ private:
 	void AddNode(int Row, int Col);	
 	int GoBackToStart();
 public:
-	CPathFinder();
+	CPathFinder(int ParamRows, int ParamCols, int ParamAlarm);
 	void DoStep(int Pos);
 	void GoBack();
 	int SelectDestination();
 	void GetData();
 	bool CheckForControlRoom();
+	void InitStartPosition();
 #ifdef DEBUG
 	void ShowScan();  // Отладочная функция. Выводит видимую область вокруг Кирка
 #endif
@@ -60,13 +61,18 @@ void CPathFinder::ShowScan()  // Отладочная функция. Вывод
 	}
 }
 #endif
-CPathFinder::CPathFinder() {
-	cin >> Rows >> Cols >> Alarm; cin.ignore(); // Размер карты и время сигнализации
-	Array.resize(Rows);                         // Символьная карта лабиринта
-	Maze.resize(Rows);
-	for (int i = 0; i < Rows; i++)
-		Maze[i].resize(Cols, -1);               // Карта R x C соответствия вершинам в  графе
-	GetData();                                  // Считываем  входные данные нового хода
+
+CPathFinder::CPathFinder(int ParamRows, int ParamCols, int ParamAlarm) {
+	Rows = ParamRows;
+	Cols = ParamCols;
+	Alarm = ParamAlarm;
+	Array.resize(ParamRows);                         // Символьная карта лабиринта
+	Maze.resize(ParamRows);
+	for (int i = 0; i < ParamRows; i++)
+		Maze[i].resize(ParamCols, -1);               // Карта R x C соответствия вершинам в  графе
+}
+
+void CPathFinder::InitStartPosition() {
 	AddNode(KirkRow, KirkCol);                  // Начальную позицию в граф, она посещена и перекресток
 	Graph[0].Visited = true;
 	CrossRoads.push_back(0);
@@ -261,7 +267,11 @@ void CPathFinder::GoBack()
 
 int main()
 {
-	CPathFinder PathFinder;
+	int Rows, Cols, Alarm;
+	cin >> Rows >> Cols >> Alarm; cin.ignore(); // Размер карты и время сигнализации
+	CPathFinder PathFinder{ Rows, Cols, Alarm };
+	PathFinder.GetData();
+	PathFinder.InitStartPosition();
 	bool Escaping = false;    // Контрольную комнату не нашли
 	while (1) {
 		if (!Escaping)        // Если нашли комнату управления, просто бежим назад кратчайшим путем
