@@ -26,7 +26,7 @@ private:
 	int KirkCol;                // column where Kirk is located.
 	vector<TNode> Graph;        // Граф лабиринта
 	int GraphPos = 0;           // Текущая позиция в графе
-	char *Command;              // Команда на движение. Вынесена на случай, если нужно будет знать последний ход
+	string Command;              // Команда на движение. Вынесена на случай, если нужно будет знать последний ход
 	vector <int> CrossRoads,    // Список перекрестков (вершин с 3-4 соседями)
 				 PathBack,      // Путь возврата (список  вершин)	
 				 PathFromStart; // Текущий путь от начала (клубок ниток)
@@ -218,10 +218,10 @@ bool CPathFinder::CheckForControlRoom()
 		Graph[GraphPos].Visited = true;    // Помечаем, что были здесь
 	}
 	bool Found = false;                    // Контрольную комнату не нашли
-	string Command;
+	string MoveCommand;
 	// Лямбда для входа в комнату управления сверху, снизу, слева, справа
-	function <void(string, int, int)> AddControlRoom = [&Found, &Command, this](string S, int LR, int LC) {
-		Command = S;
+	function <void(string, int, int)> AddControlRoom = [&Found, &MoveCommand, this](string S, int LR, int LC) {
+		MoveCommand = S;
 		AddNode(LR, LC);
 		GraphPos = Maze[LR][LC];
 		Found = true;
@@ -237,7 +237,7 @@ bool CPathFinder::CheckForControlRoom()
 			PathBack.clear();                     // очищаем список возврата
 		}
 		else {
-			cout << Command << endl;   // все хорошо - заходим в комнату упраления
+			cout << MoveCommand << endl;   // все хорошо - заходим в комнату упраления
 			GetData();
 			return true;
 		}
@@ -274,6 +274,5 @@ int main()
 		}
 		PathFinder.DoStep(Dest);    // Делаем шаг
 		PathFinder.GetData();       // Читаем входные данные
-		
 	}
 }        
