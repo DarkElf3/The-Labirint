@@ -41,17 +41,17 @@ public:
 	void GetData();
 	bool CheckForControlRoom();
 #ifdef DEBUG
-	void ShowScan();  // Отладочная функция. Выводит видимую область (5х5 вокруг Кирка)
+	void ShowScan();  // Отладочная функция. Выводит видимую область вокруг Кирка
 #endif
 };
 		
 #ifdef DEBUG
-void CPathFinder::ShowScan()  // Отладочная функция. Выводит видимую область (5х5 вокруг Кирка)
+void CPathFinder::ShowScan()  // Отладочная функция. Выводит видимую область вокруг Кирка
 {
-	int StartRow = (KirkRow < ScanRange ? ScanRange : KirkRow) - ScanRange;
-	int RowsToScan = KirkRow + ScanRange + 1 > Rows ? Rows : KirkRow + ScanRange + 1;
-	int StartCol = (KirkCol < ScanRange ? ScanRange : KirkCol) - ScanRange;
-	int ColsToScan = KirkCol + ScanRange + 1 > Cols ? Cols : KirkCol + ScanRange + 1;
+	int StartRow = max(KirkRow, ScanRange) - ScanRange;
+	int RowsToScan = min(KirkRow + ScanRange + 1, Rows);
+	int StartCol = max(KirkCol, ScanRange) - ScanRange;
+	int ColsToScan = min(KirkCol + ScanRange + 1, Cols);
 	for (int i = StartRow; i < RowsToScan; i++) {
 		for (int j = StartCol; j < ColsToScan; j++) {
 			cerr << Maze[i][j] << ' ';
@@ -136,10 +136,10 @@ void CPathFinder::ScanAll()
 // Сканирует видимую область ((2*SR+1)х(2*SR+1) вокруг Кирка) c учетом границ лабиринта
 // Увиденные вершины добавляются в граф.
 {
-	int StartRow = (KirkRow < ScanRange ? ScanRange : KirkRow) - ScanRange;
-	int RowsToScan = KirkRow + ScanRange + 1 > Rows ? Rows : KirkRow + ScanRange + 1;
-	int StartCol = (KirkCol < ScanRange ? ScanRange : KirkCol) - ScanRange;
-	int ColsToScan = KirkCol + ScanRange + 1 > Cols ? Cols : KirkCol + ScanRange + 1;
+	int StartRow = max(KirkRow, ScanRange) - ScanRange;
+	int RowsToScan = min(KirkRow + ScanRange + 1, Rows);
+	int StartCol = max(KirkCol, ScanRange) - ScanRange;
+	int ColsToScan = min(KirkCol + ScanRange + 1, Cols);
 	for (int i = StartRow; i < RowsToScan; i++) {
 		for (int j = StartCol; j < ColsToScan; j++) {
 			if (Array[i][j] == '.') AddNode(i, j);
@@ -186,7 +186,7 @@ int CPathFinder::GoBackToStart()
 	return Dist[Dest];                  // Возвращаем длину пути
 }
 
-int CPathFinder::SelectDestination(    // Выбирает вершину для следующего хода
+int CPathFinder::SelectDestination()    // Выбирает вершину для следующего хода
 {
 	int n = PathBack.size();
 	if (n != 0) {                                   // Если список возврата не пуст, берем из него
