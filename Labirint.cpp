@@ -159,8 +159,9 @@ int CPathFinder::GoBackToStart()
 	Queue.push(GraphPos);      // Начинаем с текущей позиции
 	Visited[GraphPos] = true;
 	Prev[GraphPos] = -1;
-	while (!Queue.empty()) {        // Берем из очереди вершину и добавляем туда
-		int Pos = Queue.front();    // непосещенных соседей
+	bool StartFound = false;
+	while (!StartFound && !Queue.empty()) {    // Берем из очереди вершину и добавляем туда
+		int Pos = Queue.front();               // непосещенных соседей
 		Queue.pop();
 		for (int Neighbour : Graph[Pos].Neighbours) {
 			if (!Visited[Neighbour]) {
@@ -169,20 +170,13 @@ int CPathFinder::GoBackToStart()
 				Dist[Neighbour] = Dist[Pos] + 1;
 				Prev[Neighbour] = Pos;
 			}
-			if (Neighbour == Dest) {        // Нашли нужную вершину
-				while (!Queue.empty()) {    // Очищаем очередь для выхода из цикла
-					Queue.pop();            // Можно завернуть в лямбду и return
-				}                           // Можно goto
-				break;
-			}
+			StartFound = Neighbour == Dest;
+			if (StartFound) break;
 		}
 	}
-	if (!Visited[Dest])     // 
-		cerr << "No path!";
-	else {
-		for (int Pos = Dest; Prev[Pos] != -1; Pos = Prev[Pos])
-			PathBack.push_back(Pos);    // Путь к вершине назначения Dest
-	}
+	assert(Visited[Dest] && "Не найден путь назад в CPathFinder::GoBackToStart()!");
+	for (int Pos = Dest; Prev[Pos] != -1; Pos = Prev[Pos])
+		PathBack.push_back(Pos);        // Путь к вершине назначения Dest
 	return Dist[Dest];                  // Возвращаем длину пути
 }
 
@@ -198,9 +192,9 @@ int CPathFinder::SelectDestination()    // Выбирает вершину дл�
 	if (Graph[GraphPos].Neighbours.size() > 2) {    // Перекресток - добавляем
 		CrossRoads.push_back(GraphPos);
 	}
-	for (size_t i = 0; i < Graph[GraphPos].Neighbours.size(); i++) // Ищем непосещенного соседа
+	for (int Neighbour : Graph[GraphPos].Neighbours)    // Ищем непосещенного соседа
 	{
-		int Next = Graph[GraphPos].Neighbours[i];
+		int Next = Neighbour;
 		if (Graph[Next].Visited) continue;
 		PathFromStart.push_back(GraphPos);    // Добавляем в список от старта (разматываем нить)
 		return Next;
