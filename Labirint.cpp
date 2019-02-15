@@ -53,6 +53,7 @@ void CPathFinder::ShowScan()  // Отладочная функция. Вывод
 	int RowsToScan = min(KirkRow + ScanRange + 1, Rows);
 	int StartCol = max(KirkCol, ScanRange) - ScanRange;
 	int ColsToScan = min(KirkCol + ScanRange + 1, Cols);
+
 	for (int i = StartRow; i < RowsToScan; i++) {
 		for (int j = StartCol; j < ColsToScan; j++) {
 			cerr << Maze[i][j] << ' ';
@@ -66,17 +67,17 @@ CPathFinder::CPathFinder(int ParamRows, int ParamCols, int ParamAlarm) {
 	Rows = ParamRows;
 	Cols = ParamCols;
 	Alarm = ParamAlarm;
-	Array.resize(ParamRows);                         // Символьная карта лабиринта
+	Array.resize(ParamRows);              // Символьная карта лабиринта
 	Maze.resize(ParamRows);
 	for (int i = 0; i < ParamRows; i++)
-		Maze[i].resize(ParamCols, -1);               // Карта R x C соответствия вершинам в  графе
+		Maze[i].resize(ParamCols, -1);    // Карта R x C соответствия вершинам в  графе
 }
 
 void CPathFinder::InitStartPosition() {
-	AddNode(KirkRow, KirkCol);                  // Начальную позицию в граф, она посещена и перекресток
+	AddNode(KirkRow, KirkCol);            // Начальную позицию в граф, она посещена и перекресток
 	Graph[0].Visited = true;
 	CrossRoads.push_back(0);
-	ScanAll();                                  // Осмотр всех точек в пределах видимости
+	ScanAll();                            // Осмотр всех точек в пределах видимости
 }
 
 void CPathFinder::AddNode(int Row, int Col)
@@ -86,6 +87,7 @@ void CPathFinder::AddNode(int Row, int Col)
 	assert(Row >= 0 && Row < Rows && "Неверный номер строки в CPathFinder::AddNode");    // Проверка границ
 	assert(Col >= 0 && Col < Cols && "Неверный номер столбца в CPathFinder::AddNode");
 	if (Maze[Row][Col] != -1) return;    // Вершина уже есть в графе
+
 	TNode Node = { false, Row, Col };
 	Graph.push_back(Node);               // добавляем вершину в граф
 	int GIndex = Graph.size() - 1;
@@ -145,6 +147,7 @@ void CPathFinder::ScanAll()
 	int RowsToScan = min(KirkRow + ScanRange + 1, Rows);
 	int StartCol = max(KirkCol, ScanRange) - ScanRange;
 	int ColsToScan = min(KirkCol + ScanRange + 1, Cols);
+
 	for (int i = StartRow; i < RowsToScan; i++) {
 		for (int j = StartCol; j < ColsToScan; j++) {
 			if (Array[i][j] == '.') AddNode(i, j);
@@ -165,6 +168,7 @@ int CPathFinder::GoBackToStart()
 	Visited[GraphPos] = true;
 	Prev[GraphPos] = -1;
 	bool StartFound = false;
+
 	while (!StartFound && !Queue.empty()) {    // Берем из очереди вершину и добавляем туда
 		int Pos = Queue.front();               // непосещенных соседей
 		Queue.pop();
@@ -179,6 +183,7 @@ int CPathFinder::GoBackToStart()
 			if (StartFound) break;
 		}
 	}
+
 	assert(Visited[Dest] && "Не найден путь назад в CPathFinder::GoBackToStart()!");
 	for (int Pos = Dest; Prev[Pos] != -1; Pos = Prev[Pos])
 		PathBack.push_back(Pos);        // Путь к вершине назначения Dest
@@ -194,9 +199,11 @@ int CPathFinder::SelectDestination()    // Выбирает вершину дл�
 		if (PathBack.empty()) CrossRoads.pop_back();
 		return Next;
 	}
+
 	if (Graph[GraphPos].Neighbours.size() > 2) {    // Перекресток - добавляем
 		CrossRoads.push_back(GraphPos);
 	}
+
 	for (int Neighbour : Graph[GraphPos].Neighbours)    // Ищем непосещенного соседа
 	{
 		int Next = Neighbour;
@@ -204,6 +211,7 @@ int CPathFinder::SelectDestination()    // Выбирает вершину дл�
 		PathFromStart.push_back(GraphPos);    // Добавляем в список от старта (разматываем нить)
 		return Next;
 	}    // Нет непосещенных проходов
+
 	if (Graph[GraphPos].Neighbours.size() > 2) CrossRoads.pop_back();    // Перекресток обследован, убираем
 	return -1;    // Исследовать нечего, сигнал к возврату
 }
@@ -222,20 +230,23 @@ bool CPathFinder::CheckForControlRoom()
 		ScanAll();                         // Осматриваемся // Можно оптимизировать
 		Graph[GraphPos].Visited = true;    // Помечаем, что были здесь
 	}
-	bool Found = false;                    // Контрольную комнату не нашли
+
+	bool ControlRoomFound = false;         // Контрольную комнату не нашли
 	string MoveCommand;
 	// Лямбда для входа в комнату управления сверху, снизу, слева, справа
-	function <void(string, int, int)> AddControlRoom = [&Found, &MoveCommand, this](string S, int LR, int LC) {
+	function <void(string, int, int)> AddControlRoom = [&](string S, int LR, int LC) {
 		MoveCommand = S;
 		AddNode(LR, LC);
 		GraphPos = Maze[LR][LC];
-		Found = true;
+		ControlRoomFound = true;
 	};
+
 	if (KirkCol > 0 && Array[KirkRow][KirkCol - 1] == 'C') AddControlRoom("LEFT", KirkRow, KirkCol - 1);
 	if (KirkCol < Cols - 1 && Array[KirkRow][KirkCol + 1] == 'C') AddControlRoom("RIGHT", KirkRow, KirkCol + 1);
 	if (KirkRow > 0 && Array[KirkRow - 1][KirkCol] == 'C') AddControlRoom("UP", KirkRow - 1, KirkCol);
 	if (KirkRow < Rows - 1 && Array[KirkRow + 1][KirkCol] == 'C') AddControlRoom("DOWN", KirkRow + 1, KirkCol);
-	if (Found) {                                  // Нашли комнату управления
+
+	if (ControlRoomFound) {                       // Нашли комнату управления
 		int Dist = GoBackToStart();               // Прокладываем кратчайший путь возврата 
 		if (Dist > Alarm) {                       // и если он длиннее нужного, идем дальше 
 			GraphPos = Maze[KirkRow][KirkCol];    // возвращаем текущую позицию
@@ -247,6 +258,7 @@ bool CPathFinder::CheckForControlRoom()
 			return true;
 		}
 	}
+
 	return false;
 }
 
@@ -256,12 +268,14 @@ void CPathFinder::GoBack()
 	int Dest = CrossRoads[CrossRoads.size() - 1];    // Последний перекресток
 	int Index = PathFromStart.size() - 1;            // Предыдущая позиция
 	int Node;
+
 	do {
 		Node = PathFromStart[Index];                 
 		PathBack.push_back(Node);                    // В путь возврата заносим
 		Index--;
 		PathFromStart.pop_back();                    // Из пути от начала убираем (смытываем нить)
 	} while (Dest != Node);
+
 	reverse(PathBack.begin(), PathBack.end());
 }
 
@@ -273,6 +287,7 @@ int main()
 	PathFinder.GetData();
 	PathFinder.InitStartPosition();
 	bool Escaping = false;    // Контрольную комнату не нашли
+
 	while (1) {
 		if (!Escaping)        // Если нашли комнату управления, просто бежим назад кратчайшим путем
 			Escaping = PathFinder.CheckForControlRoom();
