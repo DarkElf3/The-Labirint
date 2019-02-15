@@ -111,23 +111,22 @@ void CPathFinder::AddNode(int Row, int Col)
 }
 
 void CPathFinder::DoStep(int Pos)
-// Делает ход от текущей вершины графа к заданной
+// Делает ход от текущей вершины графа к заданной соседней
 {
-	int Horizontal = Graph[Pos].Col - Graph[GraphPos].Col;
 	Command = "Wrong Destination";    // Неправильный ход
-	if (Horizontal != 0) {            // По горизонтали
-		if (Horizontal < 0)
-			Command = "LEFT";
-		else
-			Command = "RIGHT";
-	}
+
+	int Horizontal = Graph[Pos].Col - Graph[GraphPos].Col;
+	if (Horizontal < 0)    // По горизонтали
+		Command = "LEFT";
+	else if (Horizontal> 0)
+		Command = "RIGHT";
+
 	int Vertical = Graph[Pos].Row - Graph[GraphPos].Row;
-	if (Vertical != 0) {              // По вертикали
-		if (Vertical < 0)
-			Command = "UP";
-		else
-			Command = "DOWN";
-	}
+	if (Vertical < 0)      // По вертикали
+		Command = "UP";
+	else if (Vertical > 0)
+		Command = "DOWN";
+
 	cout << Command << endl;          // Делаем ход	
 	GraphPos = Pos;                   // Текущая позиция
 }
